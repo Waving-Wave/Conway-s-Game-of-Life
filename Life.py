@@ -34,50 +34,41 @@ class MouseClickExample:
         self.master = master
         self.master.title("Life")
 
-        self.cells = [[Cell(x, y, False) for x in range(10)] for y in range(10)]
+        # Set the initial grid size to 20x20
+        self.cells = [[Cell(x, y, False) for x in range(20)] for y in range(20)]
+        self.cell_size = 20  # Adjust the cell size accordingly
 
-        self.canvas = tk.Canvas(master, width=300, height=300, bg='white')
+        self.canvas = tk.Canvas(master, width=400, height=400, bg='white')
         self.canvas.pack()
 
         self.update_canvas()
 
-        self.start_button = tk.Button(master, text="Start", command=self.start_game)
+        self.start_button = tk.Button(master, text="Start/Stop", command=self.start_game)
         self.start_button.pack()
 
-        self.running = False  # Flag to indicate whether the game is running
-        self.timer_interval = 100  # Time interval in milliseconds (adjust as needed)
+        self.running = False
+        self.timer_interval = 100  # Adjust the timer interval accordingly
 
-        # Bind the left mouse button click event to the callback function
         self.canvas.bind('<Button-1>', self.on_mouse_click)
 
     def start_game(self):
-        # Toggle the running flag
         self.running = not self.running
-
-        # If the game is now running, start the timer
         if self.running:
             self.run_step()
 
     def run_step(self):
-        # Perform one step of the Game of Life
         self.cells = step(self.cells)
-
-        # Update the canvas to reflect the new state of the cells
         self.update_canvas()
-
-        # If the game is still running, schedule the next step
         if self.running:
             self.master.after(self.timer_interval, self.run_step)
 
     def on_mouse_click(self, event):
-        # Event handler for mouse click
-        if not self.running:  # Check if the game is not running
+        if not self.running:
             x = event.x
             y = event.y
-            # print(f"Mouse clicked at ({x}, {y})")
 
-            flooredX = math.floor(x / 30)
-            flooredY = math.floor(y / 30)
+            flooredX = math.floor(x / self.cell_size)
+            flooredY = math.floor(y / self.cell_size)
 
             for row in self.cells:
                 for c in row:
@@ -87,20 +78,23 @@ class MouseClickExample:
             self.update_canvas()
 
     def update_canvas(self):
-        # Update the canvas based on the current state of the cells
-        self.canvas.delete("all")  # Clear the canvas
+        self.canvas.delete("all")
 
-        # Draw rectangles on the canvas to represent the cells
         for row in self.cells:
             for c in row:
                 if c.status:
-                    # Draw a black rectangle for a live cell
-                    self.canvas.create_rectangle(c.col * 30, c.row * 30, c.col * 30 + 30, c.row * 30 + 30,
-                                                outline="black", fill="black", width=2)
+                    self.canvas.create_rectangle(c.col * self.cell_size, c.row * self.cell_size,
+                                                 (c.col + 1) * self.cell_size, (c.row + 1) * self.cell_size,
+                                                 outline="black", fill="black", width=2)
                 else:
-                    # Draw a white rectangle for a dead cell
-                    self.canvas.create_rectangle(c.col * 30, c.row * 30, c.col * 30 + 30, c.row * 30 + 30,
-                                                outline="black", fill="white", width=2)
+                    self.canvas.create_rectangle(c.col * self.cell_size, c.row * self.cell_size,
+                                                 (c.col + 1) * self.cell_size, (c.row + 1) * self.cell_size,
+                                                 outline="black", fill="white", width=2)
+
+        # Adjust the canvas size based on the current grid size
+        canvas_width = len(self.cells[0]) * self.cell_size
+        canvas_height = len(self.cells) * self.cell_size
+        self.canvas.config(scrollregion=(0, 0, canvas_width, canvas_height))
 
 # Create the main Tkinter window
 root = tk.Tk()
